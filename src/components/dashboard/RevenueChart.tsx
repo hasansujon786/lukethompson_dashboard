@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
-import { RevenueData } from "@/lib/api/dashboard.mock";
+import { RevenueData } from "@/types";
 
 interface RevenueChartProps {
   data: RevenueData[];

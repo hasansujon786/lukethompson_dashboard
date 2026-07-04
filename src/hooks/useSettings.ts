@@ -1,31 +1,36 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { SettingsTab, ProfileData } from '@/types/settings.types';
-import { mockProfile } from '@/lib/api/settings.mock';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { useGetProfileQuery, useUpdateProfileMutation } from "@/lib/redux/features/settings/settingsApi";
+import { ProfileData, SettingsTab } from "@/types";
+import toast from "react-hot-toast";
 
 export const useSettings = () => {
-    const [activeTab, setActiveTab] = useState<SettingsTab>('general');
-    const [profile, setProfile] = useState<ProfileData>(mockProfile);
-    const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+    const { data: profile, isLoading, refetch } = useGetProfileQuery();
+    const [updateProfileMutation] = useUpdateProfileMutation();
 
-    const handleTabChange = useCallback((tab: SettingsTab) => {
+    const handleTabChange = (tab: SettingsTab) => {
         setActiveTab(tab);
-    }, []);
+    };
 
-    const handleProfileUpdate = useCallback(async (data: ProfileData) => {
-        setIsLoading(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setProfile(data);
-        setIsLoading(false);
-        toast.success('Profile updated successfully!');
-    }, []);
+    const handleProfileUpdate = async (data: ProfileData) => {
+        try {
+            await updateProfileMutation(data).unwrap();
+            toast.success("Profile updated successfully!");
+        } catch (err) {
+            toast.error("Failed to update profile");
+        }
+    };
 
     return {
         activeTab,
-        profile,
+        profile: profile || {
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+        },
         isLoading,
         handleTabChange,
         handleProfileUpdate,

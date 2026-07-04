@@ -9,10 +9,10 @@ import { SubscriptionIcon } from "@/components/ui/icons/SubscriptionIcon";
 import { StopsTodayIcon } from "@/components/ui/icons/StopsTodayIcon";
 import { createUserColumns } from "@/config/user-table.config";
 import { useUsers } from "@/hooks/useUsers";
-import { mockDashboardStats } from "@/lib/api/dashboard.mock";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 export default function UsersPage() {
-  const stats = mockDashboardStats;
+  const { stats } = useDashboardStats();
 
   const {
     users,

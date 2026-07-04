@@ -9,6 +9,8 @@ export interface User {
   updatedAt: string;
   avatar?: string;
   phone?: string;
+  phone_number?: string;
+  type?: "admin" | "user";
   subscription?: "Pro Monthly" | "Pro Annualy" | "Free Tier";
   plan?: string;
   age?: number;

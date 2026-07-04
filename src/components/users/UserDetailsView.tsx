@@ -6,7 +6,6 @@ import { ArrowLeft, Search } from "lucide-react";
 import { User } from "@/types";
 import { Input } from "@/components/ui/Input";
 import { Pagination } from "@/components/ui/Pagination";
-import { mockStopLogs, StopLog } from "@/lib/api/stop-logs.mock";
 import { cn } from "@/lib/utils";
 
 interface UserDetailViewProps {
@@ -27,17 +26,10 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const userLogs = mockStopLogs.filter((log) => log.userId === user.id);
-  const filteredLogs = userLogs.filter((log) =>
-    log.location.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
+  // TODO: Add stop logs API integration
+  const filteredLogs: any[] = [];
   const itemsPerPage = 7;
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-  const paginatedLogs = filteredLogs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const totalPages = 0;
 
   return (
     <div className="space-y-6 bg-form-bg rounded-2xl border border-border-light p-6">
@@ -129,73 +121,8 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[rgba(254,254,254,0.10)]">
-                {LOG_HEADERS.map((header, i) => (
-                  <th
-                    key={header}
-                    className={cn(
-                      "px-4 py-3 text-left text-xs font-medium text-white",
-                      i === 0 && "rounded-tl-lg",
-                      i === LOG_HEADERS.length - 1 && "rounded-tr-lg",
-                    )}
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedLogs.length > 0 ? (
-                paginatedLogs.map((log) => (
-                  <tr
-                    key={log.id}
-                    className="border-b border-border-light last:border-0"
-                  >
-                    <td className="px-4 py-3 text-sm text-white">
-                      {log.location}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-white-secondary">
-                      {log.arrivalTime}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-white-secondary">
-                      {log.dockInTime}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-white-secondary">
-                      {log.completeTime}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-white-secondary">
-                      {log.departureTime}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-white">
-                      {log.detentionOwned}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-white-secondary"
-                  >
-                    No stop logs found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <p className="py-8 text-center text-white-secondary">Stop logs coming soon</p>
         </div>
-
-        {filteredLogs.length > 0 && (
-          <div className="mt-4">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

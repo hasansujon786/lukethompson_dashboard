@@ -8,10 +8,10 @@ import { SubscriptionIcon } from '@/components/ui/icons/SubscriptionIcon';
 import { StopsTodayIcon } from '@/components/ui/icons/StopsTodayIcon';
 import { createReviewColumns } from '@/config/review-table.config';
 import { useReview } from '@/hooks/useReview';
-import { mockDashboardStats } from '@/lib/api/dashboard.mock';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 export default function ReviewPage() {
-    const stats = mockDashboardStats;
+    const { stats } = useDashboardStats();
 
     const {
         reviews,

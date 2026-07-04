@@ -1,6 +1,6 @@
 import { Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { Review } from '@/lib/api/review.mock';
+import { Review } from '@/types';
 
 interface ReviewTableColumnsConfig {
     onDelete: (review: Review) => void;

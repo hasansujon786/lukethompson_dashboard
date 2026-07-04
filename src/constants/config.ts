@@ -1,7 +1,7 @@
 export const APP_CONFIG = {
   name: "DetentionPay",
   description: "Admin Dashboard for DetentionPay",
-  apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+  apiUrl: process.env.NEXT_PUBLIC_API_ENDPOINT || "http://localhost:3001/api",
   otpTimeout: 59,
   tokenRefreshInterval: 14 * 60 * 1000,
 } as const;

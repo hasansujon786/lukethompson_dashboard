@@ -13,11 +13,10 @@ import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { useAuth } from "@/hooks/useAuth";
 import { maskEmail } from "@/lib/utils";
 import { APP_CONFIG } from "@/constants";
-import { authApi } from "@/lib/api/auth.api";
 import toast from "react-hot-toast";
 
 export const VerifyOTPForm = () => {
-  const { verifyOTP, isLoading, emailForReset } = useAuth();
+  const { verifyOTP, forgotPassword, isLoading, emailForReset } = useAuth();
 
   const maskedEmail = useMemo(() => {
     if (emailForReset) {
@@ -56,7 +55,7 @@ export const VerifyOTPForm = () => {
     }
 
     try {
-      await authApi.forgotPassword({ email: emailForReset });
+      await forgotPassword({ email: emailForReset });
       toast.success("OTP resent successfully");
     } catch (error) {
       toast.error("Failed to resend OTP");

@@ -5,7 +5,6 @@ import Image from "next/image";
 import { ArrowLeft, Search } from "lucide-react";
 import { User } from "@/types";
 import { Pagination } from "@/components/ui/Pagination";
-import { mockStopLogs, StopLog } from "@/lib/api/stop-logs.mock";
 
 interface ReviewDetailsViewProps {
     user: User;
@@ -25,17 +24,10 @@ export const ReviewDetailsView = ({ user, onBack }: ReviewDetailsViewProps) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
 
-    const userLogs = mockStopLogs.filter((log) => log.userId === user.id);
-    const filteredLogs = userLogs.filter((log) =>
-        log.location.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-
+    // TODO: Add stop logs API integration
+    const filteredLogs: any[] = [];
     const itemsPerPage = 7;
-    const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-    const paginatedLogs = filteredLogs.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage,
-    );
+    const totalPages = 0;
 
     return (
         <div className="space-y-6 bg-form-bg rounded-2xl border border-border-light p-6">
@@ -113,15 +105,7 @@ export const ReviewDetailsView = ({ user, onBack }: ReviewDetailsViewProps) => {
 
             {/* Log Summary Section */}
             <div className="rounded-2xl border border-border-light bg-form-bg p-6">
-                {filteredLogs.length > 0 && (
-                    <div className="mt-4">
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={setCurrentPage}
-                        />
-                    </div>
-                )}
+                <p className="text-center text-white-secondary">Stop logs coming soon</p>
             </div>
         </div>
     );

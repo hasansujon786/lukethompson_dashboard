@@ -1,32 +1,23 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  mockDashboardStats,
-  mockRevenueData,
-  mockPlanBreakdown,
-} from "@/lib/api/dashboard.mock";
+import { useGetStatsQuery, useGetRevenueDataQuery, useGetPlanBreakdownQuery } from "@/lib/redux/features/dashboard/dashboardApi";
 
 export const useDashboardStats = () => {
-  
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: stats, isLoading: isLoadingStats } = useGetStatsQuery();
+  const { data: revenueData, isLoading: isLoadingRevenue } = useGetRevenueDataQuery();
+  const { data: planBreakdown, isLoading: isLoadingPlans } = useGetPlanBreakdownQuery();
 
- 
-  const data = useMemo(() => {
-   
-    setTimeout(() => setIsLoading(false), 500);
-
-    return {
-      stats: mockDashboardStats,
-      revenueData: mockRevenueData,
-      planBreakdown: mockPlanBreakdown,
-    };
-  }, []);
+  const isLoading = isLoadingStats || isLoadingRevenue || isLoadingPlans;
 
   return {
-    stats: data.stats,
-    revenueData: data.revenueData,
-    planBreakdown: data.planBreakdown,
+    stats: stats || {
+      totalUsers: 0,
+      monthlyRevenue: 0,
+      proSubscribers: 0,
+      stopsToday: 0,
+    },
+    revenueData: revenueData || [],
+    planBreakdown: planBreakdown || [],
     isLoading,
   };
 };
