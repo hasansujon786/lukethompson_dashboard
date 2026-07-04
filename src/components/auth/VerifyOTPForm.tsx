@@ -44,7 +44,7 @@ export const VerifyOTPForm = () => {
 
     await verifyOTP({
       email: emailForReset,
-      otp: data.otp,
+      token: data.otp,
     });
   };
 

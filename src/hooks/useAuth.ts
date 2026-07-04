@@ -9,6 +9,7 @@ import {
   setError,
   clearError,
   setEmailForReset,
+  setResetToken,
   clearEmailForReset,
   logout as logoutAction,
 } from "@/lib/redux/features/auth/authSlice";
@@ -25,7 +26,7 @@ import { ROUTES } from "@/constants";
 export const useAuth = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { isAuthenticated, error, user, emailForReset } = useAppSelector(
+  const { isAuthenticated, error, user, emailForReset, resetToken } = useAppSelector(
     (state) => state.auth,
   );
 
@@ -102,11 +103,14 @@ export const useAuth = () => {
   );
 
   const verifyOTP = useCallback(
-    async (data: { email: string; otp: string }) => {
+    async (data: { email: string; token: string }) => {
       try {
         dispatch(clearError());
 
         const response = await verifyOTPMutation(data).unwrap();
+
+        // Store the token for reset password
+        dispatch(setResetToken(data.token));
 
         toast.success(response.message);
         router.push(ROUTES.RESET_PASSWORD);
@@ -120,16 +124,17 @@ export const useAuth = () => {
   );
 
   const resetPassword = useCallback(
-    async (data: { email: string; password: string; confirmPassword: string }) => {
+    async (data: { email: string; token: string; password: string }) => {
       try {
         dispatch(clearError());
 
         const response = await resetPasswordMutation(data).unwrap();
 
         dispatch(clearEmailForReset());
+        dispatch(setResetToken(""));
 
         toast.success(response.message);
-        router.push(ROUTES.SUCCESS);
+        router.push(ROUTES.LOGIN);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to reset password";
@@ -168,10 +173,11 @@ export const useAuth = () => {
     error,
     user,
     emailForReset,
+    resetToken,
     login,
     forgotPassword,
     verifyOTP,
     resetPassword,
     logout,
-  };
+  } as const;
 };

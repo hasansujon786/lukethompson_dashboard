@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -13,9 +13,10 @@ import { PasswordRequirements } from "./PasswordRequirements";
 import { useAuth } from "@/hooks/useAuth";
 import { validatePassword } from "@/lib/utils";
 import { CheckCircle2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export const ResetPasswordForm = () => {
-  const { resetPassword, isLoading, emailForReset } = useAuth();
+  const { resetPassword, isLoading, emailForReset, resetToken } = useAuth();
   const [password, setPassword] = useState("");
 
   const {
@@ -37,14 +38,19 @@ export const ResetPasswordForm = () => {
     [currentPassword],
   );
 
+  // Use token from Redux state (stored after OTP verification)
+  const tokenToUse = resetToken || "";
+
   const onSubmit = async (data: ResetPasswordFormData) => {
-    if (!emailForReset) {
+    if (!emailForReset || !tokenToUse) {
+      toast.error("Invalid session. Please try again.");
       return;
     }
 
     await resetPassword({
       email: emailForReset,
-      ...data,
+      token: tokenToUse,
+      password: data.password,
     });
   };
 

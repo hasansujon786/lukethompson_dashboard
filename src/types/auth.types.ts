@@ -54,6 +54,7 @@ export interface AuthState {
   isLoading: boolean;
   error: string | null;
   emailForReset: string | null;
+  resetToken: string | null;
 }
 
 export interface PasswordValidation {

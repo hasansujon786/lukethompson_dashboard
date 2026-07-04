@@ -9,6 +9,7 @@ const initialState: AuthState = {
     isLoading: false,
     error: null,
     emailForReset: null,
+    resetToken: null,
 };
 
 const authSlice = createSlice({
@@ -44,8 +45,13 @@ const authSlice = createSlice({
             state.emailForReset = action.payload;
         },
 
+        setResetToken: (state, action: PayloadAction<string>) => {
+            state.resetToken = action.payload;
+        },
+
         clearEmailForReset: (state) => {
             state.emailForReset = null;
+            state.resetToken = null;
         },
 
         logout: (state) => {
@@ -70,6 +76,7 @@ export const {
     setError,
     clearError,
     setEmailForReset,
+    setResetToken,
     clearEmailForReset,
     logout,
     updateUser,
