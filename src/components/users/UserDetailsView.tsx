@@ -1,35 +1,48 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { ArrowLeft, Search } from "lucide-react";
-import { User } from "@/types";
-import { Input } from "@/components/ui/Input";
-import { Pagination } from "@/components/ui/Pagination";
-import { cn } from "@/lib/utils";
+import { ArrowLeft } from "lucide-react";
+import { User, StopLog } from "@/types";
+import { useGetUserQuery, useGetUserStopLogsQuery } from "@/lib/redux/features/users/usersApi";
+import { useUserStopLogs } from "@/hooks/useUserStopLogs";
 
 interface UserDetailViewProps {
   user: User;
   onBack: () => void;
 }
 
-const LOG_HEADERS = [
-  "Location",
-  "Arrival Time",
-  "Dock In Time",
-  "Complete Time",
-  "Departure Time",
-  "Detention Owned",
-];
-
 export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const { data: userData, isLoading: userLoading } = useGetUserQuery(user.id);
+  const userDetails = userData?.data || user;
 
-  // TODO: Add stop logs API integration
-  const filteredLogs: any[] = [];
-  const itemsPerPage = 7;
-  const totalPages = 0;
+  const {
+    stopLogs,
+    isLoading: logsLoading,
+    searchQuery,
+    statusFilter,
+    handleSearch,
+    handleStatusChange,
+    refetch,
+  } = useUserStopLogs(user.id, { limit: 10 });
+
+  const avatarUrl = userDetails.avatar && typeof userDetails.avatar === "string" && userDetails.avatar.startsWith("http")
+    ? userDetails.avatar
+    : "/Avatar.png";
+
+  const formatDateTime = (dateStr?: string | null) => {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatCurrency = (value: string) => {
+    return parseFloat(value).toFixed(2);
+  };
 
   return (
     <div className="space-y-6 bg-form-bg rounded-2xl border border-border-light p-6">
@@ -49,17 +62,21 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
       {/* User Profile */}
       <div className="flex items-center gap-4 px-6">
         <div className="relative h-16 w-16 overflow-hidden rounded-full">
-          <Image
-            src={user.avatar || "/Avatar.png"}
-            alt={user.name}
-            fill
-            className="object-cover"
-            sizes="64px"
+          <img
+            src={avatarUrl}
+            alt={userDetails.name}
+            className="h-full w-full object-cover rounded-full"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/Avatar.png";
+            }}
           />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">{user.name}</h2>
-          <p className="text-sm text-white-secondary">{user.email}</p>
+          <h2 className="text-lg font-semibold text-white">{userDetails.name}</h2>
+          <p className="text-sm text-white-secondary">{userDetails.email}</p>
+          <span className="inline-flex items-center rounded-2xl px-3 py-0.5 text-xs font-medium text-white bg-white/10 mt-1">
+            {userDetails.type || userDetails.role || "user"}
+          </span>
         </div>
       </div>
 
@@ -71,7 +88,7 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
               Name
             </label>
             <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
-              <span className="text-sm text-white">{user.name}</span>
+              <span className="text-sm text-white">{userDetails.name}</span>
             </div>
           </div>
           <div>
@@ -79,7 +96,7 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
               Email
             </label>
             <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
-              <span className="text-sm text-white">{user.email}</span>
+              <span className="text-sm text-white">{userDetails.email}</span>
             </div>
           </div>
           <div>
@@ -87,19 +104,31 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
               Phone Number
             </label>
             <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
-              <span className="text-sm text-white">{user.phone || "-"}</span>
+              <span className="text-sm text-white">{userDetails.phone_number || userDetails.phone || "-"}</span>
             </div>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-white-secondary">
-              Join Date
+              User Type
             </label>
             <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
-              <span className="text-sm text-white">
-                {user.joiningDate
-                  ? new Date(user.joiningDate).toLocaleDateString()
-                  : "-"}
-              </span>
+              <span className="text-sm text-white capitalize">{userDetails.type || userDetails.role || "user"}</span>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-white-secondary">
+              Created At
+            </label>
+            <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
+              <span className="text-sm text-white">{formatDateTime(userDetails.created_at || userDetails.createdAt)}</span>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-white-secondary">
+              Approved At
+            </label>
+            <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
+              <span className="text-sm text-white">{formatDateTime((userDetails as User & { approved_at?: string }).approved_at)}</span>
             </div>
           </div>
         </div>
@@ -107,22 +136,84 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
 
       {/* Log Summary Section */}
       <div className="rounded-2xl border border-border-light bg-form-bg p-6">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-base font-bold text-white">Log Summary</h3>
-          <div className="relative w-full sm:w-[237px]">
-            <Input
-              placeholder="Search logs..."
+        <h3 className="mb-4 text-lg font-semibold text-white">Log Summary</h3>
+
+        {/* Search and Filter */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative flex-1 max-w-md">
+            <input
+              type="text"
+              placeholder="Search by location or city..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 bg-white/10 border-border-light pl-9"
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full rounded-lg border border-border-light bg-white/5 px-4 py-2.5 pl-10 text-sm text-white placeholder-white-secondary focus:border-green-success focus:outline-none"
             />
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-secondary" />
+            <svg
+              className="absolute left-3 top-2.5 h-5 w-5 text-white-secondary"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
           </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => handleStatusChange(e.target.value)}
+            className="rounded-lg border border-border-light bg-white/5 px-4 py-2.5 text-sm text-white focus:border-green-success focus:outline-none"
+          >
+            <option value="ALL">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="APPROVED">Approved</option>
+            <option value="BANNED">Banned</option>
+          </select>
         </div>
 
-        <div className="overflow-x-auto">
-          <p className="py-8 text-center text-white-secondary">Stop logs coming soon</p>
-        </div>
+        {/* Stop Logs Table */}
+        {logsLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-white-secondary">Loading stop logs...</div>
+          </div>
+        ) : stopLogs.length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-white-secondary">No stop logs found</p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border-light">
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Location</th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Arrival Time</th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Dock In Time</th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Complete Time</th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Departure Time</th>
+                    <th className="pb-3 text-right text-sm font-medium text-white-secondary">Detention</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stopLogs.map((log: StopLog) => (
+                    <tr key={log.id} className="border-b border-border-light/50 last:border-0">
+                      <td className="py-3 text-sm text-white">{log.address}</td>
+                      <td className="py-3 text-sm text-white-secondary">{formatDateTime(log.arrived_at)}</td>
+                      <td className="py-3 text-sm text-white-secondary">{formatDateTime(log.docked_at)}</td>
+                      <td className="py-3 text-sm text-white-secondary">{formatDateTime(log.completed_at)}</td>
+                      <td className="py-3 text-sm text-white-secondary">{formatDateTime(log.departed_at)}</td>
+                      <td className="py-3 text-sm text-right text-white">{formatCurrency(log.detention)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

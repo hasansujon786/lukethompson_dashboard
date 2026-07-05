@@ -1,16 +1,16 @@
-import { Eye } from "lucide-react";
+import { Eye, CheckCircle2 } from "lucide-react";
 import { User } from "@/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CustomDropdown } from "@/components/ui/CustomDropdown";
 import {
   renderUserInfo,
-  renderPlan,
   renderDate,
 } from "@/components/ui/table-renderers";
 
 interface UserTableColumnsConfig {
   onView: (user: User) => void;
   onBan: (user: User) => void;
+  onApprove?: (user: User) => void;
   onDelete: (user: User) => void;
   showEye?: boolean;
 }
@@ -18,6 +18,7 @@ interface UserTableColumnsConfig {
 export const createUserColumns = ({
   onView,
   onBan,
+  onApprove,
   onDelete,
   showEye = true,
 }: UserTableColumnsConfig) => [
@@ -30,7 +31,7 @@ export const createUserColumns = ({
       key: "phone",
       header: "Phone",
       render: (u: User) => (
-        <span className="text-sm text-white-secondary">{u.phone || "-"}</span>
+        <span className="text-sm text-white-secondary">{u.phone_number || u.phone || "-"}</span>
       ),
     },
     {
@@ -38,31 +39,26 @@ export const createUserColumns = ({
       header: "Subscription",
       render: (u: User) => (
         <span className="text-sm text-white-secondary">
-          {u.subscription || "-"}
+          {u.subscription_plan || u.subscription || "-"}
         </span>
       ),
-    },
-    {
-      key: "plan",
-      header: "Plan",
-      render: (u: User) => renderPlan(u.plan || "Free Tier"),
     },
     {
       key: "stops",
       header: "Stops",
       render: (u: User) => (
-        <span className="text-sm text-white">{u.stops || 0}</span>
+        <span className="text-sm text-white">{u.total_stops || u.stops || 0}</span>
       ),
     },
     {
       key: "joiningDate",
       header: "Joining Date",
-      render: (u: User) => renderDate(u.joiningDate || u.createdAt),
+      render: (u: User) => renderDate(u.created_at || u.joiningDate || u.createdAt),
     },
     {
       key: "status",
       header: "Status",
-      render: (u: User) => <StatusBadge status={u.status || "Active"} />,
+      render: (u: User) => <StatusBadge status={u.status || "PENDING"} />,
     },
     {
       key: "actions",
@@ -77,13 +73,22 @@ export const createUserColumns = ({
               <Eye size={18} />
             </button>
           )}
+          {u.status === "PENDING" && onApprove && (
+            <button
+              onClick={() => onApprove(u)}
+              className="rounded p-1.5 text-green-500 hover:bg-green-500/10 hover:text-green-400 transition-colors"
+              title="Approve User"
+            >
+              <CheckCircle2 size={18} />
+            </button>
+          )}
           <CustomDropdown
             options={[
               {
-                label: u.status === "Banned" ? "Unban User" : "Ban User",
+                label: u.status === "BANNED" ? "Unban User" : "Ban User",
                 value: "ban",
                 className:
-                  u.status === "Banned"
+                  u.status === "BANNED"
                     ? "text-white hover:bg-white/10"
                     : "bg-error-red text-white hover:bg-error-red/80",
                 onClick: () => onBan(u),

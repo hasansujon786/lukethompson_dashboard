@@ -19,17 +19,20 @@ export default function UsersPage() {
     currentPage,
     totalPages,
     selectedUser,
+    isLoading,
     handleSearch,
     handleViewUser,
     handleCloseDetail,
     handleBanUser,
+    handleApproveUser,
     handleDeleteUser,
     handlePageChange,
-  } = useUsers({ itemsPerPage: 8 });
+  } = useUsers({ itemsPerPage: 10 });
 
   const columns = createUserColumns({
     onView: handleViewUser,
     onBan: handleBanUser,
+    onApprove: handleApproveUser,
     onDelete: handleDeleteUser,
     showEye: true,
   });

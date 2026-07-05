@@ -1,56 +1,56 @@
 import { api } from "../api/apiSlice";
-import { User } from "@/types";
+import { User, ApiPaginatedResponse, UsersQueryParams, StopLogsResponse, StopLogsQueryParams } from "@/types";
 
 export const usersApi = api.injectEndpoints({
     endpoints: (builder) => ({
-        getUsers: builder.query<User[], void>({
-            query: () => ({
-                url: "/users",
+        getUsers: builder.query<ApiPaginatedResponse<User>, UsersQueryParams>({
+            query: (params) => ({
+                url: "/admin/users",
                 method: "GET",
+                params,
             }),
             providesTags: ["Users"],
         }),
 
-        getUser: builder.query<User, string>({
+        getUser: builder.query<{ success: boolean; message: string; data: User }, string>({
             query: (id) => ({
-                url: `/users/${id}`,
+                url: `/admin/users/${id}`,
                 method: "GET",
             }),
             providesTags: ["Users"],
         }),
 
-        createUser: builder.mutation<User, Partial<User>>({
-            query: (userData) => ({
-                url: "/users",
+        banUser: builder.mutation<User, string>({
+            query: (id) => ({
+                url: `/admin/user/${id}/ban`,
                 method: "POST",
-                body: userData,
             }),
             invalidatesTags: ["Users"],
         }),
 
-        updateUser: builder.mutation<User, { id: string; data: Partial<User> }>({
-            query: ({ id, data }) => ({
-                url: `/users/${id}`,
-                method: "PUT",
-                body: data,
+        approveUser: builder.mutation<User, string>({
+            query: (id) => ({
+                url: `/admin/user/${id}/approve`,
+                method: "POST",
             }),
             invalidatesTags: ["Users"],
         }),
 
         deleteUser: builder.mutation<void, string>({
             query: (id) => ({
-                url: `/users/${id}`,
+                url: `/admin/user/${id}`,
                 method: "DELETE",
             }),
             invalidatesTags: ["Users"],
         }),
 
-        banUser: builder.mutation<User, string>({
-            query: (id) => ({
-                url: `/users/${id}/ban`,
-                method: "POST",
+        getUserStopLogs: builder.query<StopLogsResponse, { userId: string; params?: StopLogsQueryParams }>({
+            query: ({ userId, params }) => ({
+                url: `/admin/stoplog/user/${userId}`,
+                method: "GET",
+                params,
             }),
-            invalidatesTags: ["Users"],
+            providesTags: ["Users"],
         }),
     }),
 });
@@ -58,8 +58,8 @@ export const usersApi = api.injectEndpoints({
 export const {
     useGetUsersQuery,
     useGetUserQuery,
-    useCreateUserMutation,
-    useUpdateUserMutation,
-    useDeleteUserMutation,
     useBanUserMutation,
+    useApproveUserMutation,
+    useDeleteUserMutation,
+    useGetUserStopLogsQuery,
 } = usersApi;

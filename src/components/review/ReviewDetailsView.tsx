@@ -48,7 +48,7 @@ export const ReviewDetailsView = ({ user, onBack }: ReviewDetailsViewProps) => {
             <div className="flex items-center gap-4 px-6">
                 <div className="relative h-16 w-16 overflow-hidden rounded-full">
                     <Image
-                        src={user.avatar || "/Avatar.png"}
+                        src={user.avatar && typeof user.avatar === "string" && user.avatar.length > 0 ? user.avatar : "/Avatar.png"}
                         alt={user.name}
                         fill
                         className="object-cover"

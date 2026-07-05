@@ -1,18 +1,18 @@
 "use client";
 
-import { useGetUsersQuery, useBanUserMutation, useDeleteUserMutation } from "@/lib/redux/features/users/usersApi";
+import { useGetUsersQuery, useBanUserMutation, useApproveUserMutation, useDeleteUserMutation } from "@/lib/redux/features/users/usersApi";
 import { User } from "@/types";
 import toast from "react-hot-toast";
 
 export const useDashboardUsers = () => {
-  const { data: users = [], isLoading, refetch } = useGetUsersQuery();
+  const { data, isLoading, refetch } = useGetUsersQuery({ page: 1, limit: 5 });
   const [banUserMutation] = useBanUserMutation();
+  const [approveUserMutation] = useApproveUserMutation();
   const [deleteUserMutation] = useDeleteUserMutation();
 
+  const users = data?.data || [];
+
   const handleSearch = async (query: string) => {
-    // RTK Query handles filtering on the server side
-    // For client-side search, you can refetch with params
-    // Or implement client-side filtering here
     refetch();
   };
 
@@ -20,10 +20,21 @@ export const useDashboardUsers = () => {
     try {
       await banUserMutation(user.id).unwrap();
       toast.success(
-        `${user.name} ${user.status === "Banned" ? "unbanned" : "banned"}`,
+        `${user.name} ${user.status === "BANNED" ? "unbanned" : "banned"}`,
       );
+      refetch();
     } catch (err) {
       toast.error("Failed to update user status");
+    }
+  };
+
+  const handleApproveUser = async (user: User) => {
+    try {
+      await approveUserMutation(user.id).unwrap();
+      toast.success(`${user.name} approved`);
+      refetch();
+    } catch (err) {
+      toast.error("Failed to approve user");
     }
   };
 
@@ -31,6 +42,7 @@ export const useDashboardUsers = () => {
     try {
       await deleteUserMutation(user.id).unwrap();
       toast.success(`${user.name} deleted`);
+      refetch();
     } catch (err) {
       toast.error("Failed to delete user");
     }
@@ -41,6 +53,7 @@ export const useDashboardUsers = () => {
     isLoading,
     handleSearch,
     handleBanUser,
+    handleApproveUser,
     handleDeleteUser,
   };
 };

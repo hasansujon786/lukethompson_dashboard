@@ -1,22 +1,68 @@
-export type UserStatus = "Active" | "Inactive" | "Banned";
+export type UserStatus = "PENDING" | "APPROVED" | "BANNED";
 
 export interface User {
   id: string;
-  email: string;
   name: string;
+  email: string;
+  avatar?: string | null;
+  phone_number?: string | null;
+  phone?: string;
   role: "admin" | "user";
+  type?: "admin" | "user";
+  subscription_plan?: string;
+  subscription?: string;
+  plan?: string;
+  total_stops?: number;
+  stops?: number;
+  created_at?: string;
   createdAt: string;
   updatedAt: string;
-  avatar?: string;
-  phone?: string;
-  phone_number?: string;
-  type?: "admin" | "user";
-  subscription?: "Pro Monthly" | "Pro Annualy" | "Free Tier";
-  plan?: string;
-  age?: number;
   joiningDate?: string;
   status?: UserStatus;
-  stops?: number;
+  age?: number;
+}
+
+export interface StopLog {
+  id: string;
+  address: string;
+  arrived_at: string;
+  docked_at: string;
+  completed_at: string;
+  departed_at: string;
+  detention: string;
+}
+
+export interface StopLogsResponse {
+  success: boolean;
+  message: string;
+  data: StopLog[];
+  meta_data: {
+    next_cursor: string | null;
+    limit: number;
+  };
+}
+
+export interface StopLogsQueryParams {
+  cursor?: string;
+  limit?: number;
+  search?: string;
+  status?: string;
+}
+
+export interface ApiPaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  meta_data: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
+
+export interface UsersQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
 }
 
 export interface LoginCredentials {
