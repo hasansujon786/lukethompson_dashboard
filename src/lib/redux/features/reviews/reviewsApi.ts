@@ -1,5 +1,5 @@
 import { api } from "../api/apiSlice";
-import { Review } from "@/types";
+import { Review, ShipperStatsResponse } from "@/types";
 
 export const reviewsApi = api.injectEndpoints({
     endpoints: (builder) => ({
@@ -27,6 +27,14 @@ export const reviewsApi = api.injectEndpoints({
             }),
             invalidatesTags: ["Reviews"],
         }),
+
+        getShipperStats: builder.query<ShipperStatsResponse, void>({
+            query: () => ({
+                url: "/admin/shipper/stats",
+                method: "GET",
+            }),
+            providesTags: ["Reviews"],
+        }),
     }),
 });
 
@@ -34,4 +42,5 @@ export const {
     useGetReviewsQuery,
     useGetReviewQuery,
     useDeleteReviewMutation,
+    useGetShipperStatsQuery,
 } = reviewsApi;

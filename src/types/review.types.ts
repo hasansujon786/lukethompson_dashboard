@@ -10,3 +10,15 @@ export interface Review {
     date: string;
     status: "Pending" | "Approved" | "Rejected";
 }
+
+export interface ShipperStats {
+    total_users: number;
+    total_reviews: number;
+    total_facilities: number;
+}
+
+export interface ShipperStatsResponse {
+    success: boolean;
+    message: string;
+    data: ShipperStats;
+}

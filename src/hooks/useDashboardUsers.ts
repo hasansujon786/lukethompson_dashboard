@@ -1,12 +1,13 @@
 "use client";
 
-import { useGetUsersQuery, useBanUserMutation, useApproveUserMutation, useDeleteUserMutation } from "@/lib/redux/features/users/usersApi";
+import { useGetUsersQuery, useBanUserMutation, useUnbanUserMutation, useApproveUserMutation, useDeleteUserMutation } from "@/lib/redux/features/users/usersApi";
 import { User } from "@/types";
 import toast from "react-hot-toast";
 
 export const useDashboardUsers = () => {
   const { data, isLoading, refetch } = useGetUsersQuery({ page: 1, limit: 5 });
   const [banUserMutation] = useBanUserMutation();
+  const [unbanUserMutation] = useUnbanUserMutation();
   const [approveUserMutation] = useApproveUserMutation();
   const [deleteUserMutation] = useDeleteUserMutation();
 
@@ -18,10 +19,13 @@ export const useDashboardUsers = () => {
 
   const handleBanUser = async (user: User) => {
     try {
-      await banUserMutation(user.id).unwrap();
-      toast.success(
-        `${user.name} ${user.status === "BANNED" ? "unbanned" : "banned"}`,
-      );
+      if (user.status === "BANNED") {
+        await unbanUserMutation(user.id).unwrap();
+        toast.success(`${user.name} unbanned successfully`);
+      } else {
+        await banUserMutation(user.id).unwrap();
+        toast.success(`${user.name} banned successfully`);
+      }
       refetch();
     } catch (err) {
       toast.error("Failed to update user status");

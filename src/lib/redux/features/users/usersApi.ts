@@ -20,10 +20,18 @@ export const usersApi = api.injectEndpoints({
             providesTags: ["Users"],
         }),
 
-        banUser: builder.mutation<User, string>({
+        banUser: builder.mutation<{ success: boolean; message: string }, string>({
             query: (id) => ({
-                url: `/admin/user/${id}/ban`,
-                method: "POST",
+                url: `/admin/users/${id}/ban`,
+                method: "PATCH",
+            }),
+            invalidatesTags: ["Users"],
+        }),
+
+        unbanUser: builder.mutation<{ success: boolean; message: string }, string>({
+            query: (id) => ({
+                url: `/admin/users/${id}/unban`,
+                method: "PATCH",
             }),
             invalidatesTags: ["Users"],
         }),
@@ -36,9 +44,9 @@ export const usersApi = api.injectEndpoints({
             invalidatesTags: ["Users"],
         }),
 
-        deleteUser: builder.mutation<void, string>({
+        deleteUser: builder.mutation<{ success: boolean; message: string }, string>({
             query: (id) => ({
-                url: `/admin/user/${id}`,
+                url: `/admin/users/${id}`,
                 method: "DELETE",
             }),
             invalidatesTags: ["Users"],
@@ -59,6 +67,7 @@ export const {
     useGetUsersQuery,
     useGetUserQuery,
     useBanUserMutation,
+    useUnbanUserMutation,
     useApproveUserMutation,
     useDeleteUserMutation,
     useGetUserStopLogsQuery,
