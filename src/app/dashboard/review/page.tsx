@@ -2,6 +2,7 @@
 
 import { DataTable } from "@/components/ui/DataTable";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { DeleteReviewModal } from "@/components/review/DeleteReviewModal";
 import { UserManagementIcon } from "@/components/ui/icons/UserManagementIcon";
 import { ReviewIcon } from "@/components/ui/icons/ReviewIcon";
 import { createReviewColumns } from "@/config/review-table.config";
@@ -17,9 +18,12 @@ export default function ReviewPage() {
         currentPage,
         totalPages,
         selectedReview,
+        deleteTarget,
         handleSearch,
         handleViewReview,
         handleDeleteReview,
+        handleConfirmDelete,
+        handleCancelDelete,
         handlePageChange,
     } = useReview({ itemsPerPage: 8 });
 
@@ -67,6 +71,14 @@ export default function ReviewPage() {
                     totalPages,
                     onPageChange: handlePageChange,
                 }}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <DeleteReviewModal
+                review={deleteTarget}
+                isOpen={!!deleteTarget}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
             />
         </div>
     );

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useGetReviewsQuery, useDeleteReviewMutation } from "@/lib/redux/features/reviews/reviewsApi";
-import { Review } from "@/types";
+import { ShipperRating } from "@/types";
 import toast from "react-hot-toast";
 
 interface UseReviewOptions {
@@ -10,64 +10,74 @@ interface UseReviewOptions {
 }
 
 export const useReview = ({ itemsPerPage = 8 }: UseReviewOptions = {}) => {
-    const { data: reviews = [], isLoading, refetch } = useGetReviewsQuery({});
-    const [deleteReviewMutation] = useDeleteReviewMutation();
-
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+    const [selectedReview, setSelectedReview] = useState<ShipperRating | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<ShipperRating | null>(null);
 
-    const filteredReviews = reviews.filter(
-        (review) =>
-            review.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            review.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            review.facilityName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const { data, isLoading, refetch } = useGetReviewsQuery({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchQuery || undefined,
+    });
 
-    const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
+    const [deleteReviewMutation] = useDeleteReviewMutation();
 
-    const paginatedReviews = filteredReviews.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const reviews = data?.data || [];
+    const totalReviews = data?.meta_data?.total || 0;
+    const totalPages = Math.ceil(totalReviews / itemsPerPage);
 
-    const handleSearch = (query: string) => {
+    const handleSearch = useCallback((query: string) => {
         setSearchQuery(query);
         setCurrentPage(1);
-    };
+    }, []);
 
-    const handleViewReview = (review: Review) => {
+    const handleViewReview = useCallback((review: ShipperRating) => {
         setSelectedReview(review);
-    };
+    }, []);
 
-    const handleCloseDetail = () => {
+    const handleCloseDetail = useCallback(() => {
         setSelectedReview(null);
-    };
+    }, []);
 
-    const handleDeleteReview = async (review: Review) => {
+    const handleDeleteReview = useCallback(async (review: ShipperRating) => {
+        setDeleteTarget(review);
+    }, []);
+
+    const handleConfirmDelete = useCallback(async (review: ShipperRating) => {
         try {
             await deleteReviewMutation(review.id).unwrap();
-            toast.success(`${review.driverName}'s review deleted`);
+            toast.success(`${review.user?.name || "Shipper"}'s review deleted`);
+            setDeleteTarget(null);
+            refetch();
         } catch (err) {
             toast.error("Failed to delete review");
         }
-    };
+    }, [deleteReviewMutation, refetch]);
 
-    const handlePageChange = (page: number) => {
+    const handleCancelDelete = useCallback(() => {
+        setDeleteTarget(null);
+    }, []);
+
+    const handlePageChange = useCallback((page: number) => {
         setCurrentPage(page);
-    };
+    }, []);
 
     return {
-        reviews: paginatedReviews,
-        filteredTotal: filteredReviews.length,
+        reviews,
+        filteredTotal: totalReviews,
         searchQuery,
         currentPage,
         totalPages,
         selectedReview,
+        deleteTarget,
+        isLoading,
         handleSearch,
         handleViewReview,
         handleCloseDetail,
         handleDeleteReview,
+        handleConfirmDelete,
+        handleCancelDelete,
         handlePageChange,
     };
 };

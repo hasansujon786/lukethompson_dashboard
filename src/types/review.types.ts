@@ -11,6 +11,21 @@ export interface Review {
     status: "Pending" | "Approved" | "Rejected";
 }
 
+export interface ShipperRating {
+    id: string;
+    shipper_facility_id: string;
+    shipper_facility_name: string;
+    rate: number;
+    review: string;
+    created_at: string;
+    user: {
+        id: string;
+        name: string;
+        email: string;
+        avatar?: string;
+    };
+}
+
 export interface ShipperStats {
     total_users: number;
     total_reviews: number;
@@ -22,3 +37,4 @@ export interface ShipperStatsResponse {
     message: string;
     data: ShipperStats;
 }
+

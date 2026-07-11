@@ -1,28 +1,38 @@
 import { Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { Review } from '@/types';
+import { ShipperRating } from '@/types';
 
 interface ReviewTableColumnsConfig {
-    onDelete: (review: Review) => void;
-    onView?: (review: Review) => void;
+    onDelete: (rating: ShipperRating) => void;
+    onView?: (rating: ShipperRating) => void;
 }
+
+export const getPayerStatus = (rate: number) => {
+    if (rate >= 4.0) {
+        return "Good Payer (80%+ pay rate)";
+    } else if (rate >= 2.5) {
+        return "Mixed Payer (50-70%+ pay rate)";
+    } else {
+        return "Poor Payer (Under 70%+ pay rate)";
+    }
+};
 
 export const createReviewColumns = ({ onDelete, onView }: ReviewTableColumnsConfig) => [
     {
         key: 'driver',
-        header: "Driver's Name",
-        render: (review: Review) => (
+        header: "Driver Name",
+        render: (rating: ShipperRating) => (
             <div className="flex items-center gap-3">
                 <div className="relative h-12 w-12 overflow-hidden rounded-lg">
                     <Image
-                        src={review.driverAvatar || '/Avatar.png'}
-                        alt={review.driverName}
+                        src={rating.user?.avatar || '/Avatar.png'}
+                        alt={rating.user?.name || 'Driver'}
                         fill
                         className="object-cover"
                         sizes="48px"
                     />
                 </div>
-                <span className="text-sm font-normal text-white">{review.driverName}</span>
+                <span className="text-sm font-normal text-white">{rating.user?.name || 'N/A'}</span>
             </div>
         ),
         className: 'min-w-[200px]',
@@ -30,31 +40,31 @@ export const createReviewColumns = ({ onDelete, onView }: ReviewTableColumnsConf
     {
         key: 'email',
         header: 'Email',
-        render: (review: Review) => (
-            <span className="text-sm text-white-secondary">{review.email}</span>
+        render: (rating: ShipperRating) => (
+            <span className="text-sm text-white-secondary">{rating.user?.email || 'N/A'}</span>
         ),
     },
     {
         key: 'facility',
         header: 'Facility Name',
-        render: (review: Review) => (
-            <span className="text-sm text-white-secondary">{review.facilityName}</span>
+        render: (rating: ShipperRating) => (
+            <span className="text-sm text-white-secondary">{rating.shipper_facility_name || 'N/A'}</span>
         ),
     },
     {
         key: 'review',
         header: 'Review',
-        render: (review: Review) => (
-            <span className="text-sm text-white-secondary">{review.review}</span>
+        render: (rating: ShipperRating) => (
+            <span className="text-sm text-white-secondary">{getPayerStatus(rating.rate)}</span>
         ),
     },
     {
         key: 'actions',
         header: 'Action',
-        render: (review: Review) => (
+        render: (rating: ShipperRating) => (
             <div className="flex items-center gap-2">
                 <button
-                    onClick={() => onDelete(review)}
+                    onClick={() => onDelete(rating)}
                     className="rounded p-2 text-[#8DA2B8] hover:bg-error-red/10 hover:text-error-red transition-colors"
                 >
                     <Trash2 size={20} />

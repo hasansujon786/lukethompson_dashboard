@@ -1,28 +1,28 @@
 import { api } from "../api/apiSlice";
-import { Review, ShipperStatsResponse } from "@/types";
+import { ShipperRating, ShipperStatsResponse, ApiPaginatedResponse } from "@/types";
 
 export const reviewsApi = api.injectEndpoints({
     endpoints: (builder) => ({
-        getReviews: builder.query<Review[], { page?: number; limit?: number; search?: string }>({
+        getReviews: builder.query<ApiPaginatedResponse<ShipperRating>, { page?: number; limit?: number; search?: string }>({
             query: (params) => ({
-                url: "/reviews",
+                url: "/admin/shipper/ratings",
                 method: "GET",
                 params,
             }),
             providesTags: ["Reviews"],
         }),
 
-        getReview: builder.query<Review, string>({
+        getReview: builder.query<{ success: boolean; message: string; data: ShipperRating }, string>({
             query: (id) => ({
-                url: `/reviews/${id}`,
+                url: `/admin/shipper/ratings/${id}`,
                 method: "GET",
             }),
             providesTags: ["Reviews"],
         }),
 
-        deleteReview: builder.mutation<void, string>({
+        deleteReview: builder.mutation<{ success: boolean; message: string }, string>({
             query: (id) => ({
-                url: `/reviews/${id}`,
+                url: `/admin/shipper/ratings/${id}`,
                 method: "DELETE",
             }),
             invalidatesTags: ["Reviews"],
