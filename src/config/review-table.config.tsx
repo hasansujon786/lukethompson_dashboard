@@ -30,6 +30,7 @@ export const createReviewColumns = ({ onDelete, onView }: ReviewTableColumnsConf
                         fill
                         className="object-cover"
                         sizes="48px"
+                        unoptimized
                     />
                 </div>
                 <span className="text-sm font-normal text-white">{rating.user?.name || 'N/A'}</span>

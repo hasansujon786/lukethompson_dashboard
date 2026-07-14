@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+import { useSettings } from './useSettings';
 import toast from 'react-hot-toast';
 
 export const usePassword = () => {
@@ -8,6 +9,7 @@ export const usePassword = () => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const { handlePasswordChange } = useSettings();
 
     const errors = useMemo(() => {
         const errs: Record<string, string> = {};
@@ -33,13 +35,22 @@ export const usePassword = () => {
         }
 
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setIsLoading(false);
-        toast.success('Password updated successfully!');
-        setOldPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-    }, [oldPassword, newPassword, confirmPassword, errors]);
+        try {
+            const success = await handlePasswordChange({
+                old_password: oldPassword,
+                new_password: newPassword,
+            });
+            if (success) {
+                setOldPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+            }
+        } catch {
+            toast.error('Failed to update password');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [oldPassword, newPassword, confirmPassword, errors, handlePasswordChange]);
 
     const handleCancel = useCallback(() => {
         setOldPassword('');

@@ -29,3 +29,25 @@ export interface PlanBreakdown {
   color: string;
   subscribers: number;
 }
+
+export interface StatsSummaryResponse {
+  total_user: number;
+  monthly_revenue: string;
+  pro_subscriber: number;
+  stops_today: number;
+}
+
+export interface RevenueChartItem {
+  month: string;
+  revenue: string;
+}
+
+export interface PlanStatItem {
+  plan: string;
+  count: number;
+}
+
+export interface PlanStatsResponse {
+  total_users: number;
+  plans: PlanStatItem[];
+}

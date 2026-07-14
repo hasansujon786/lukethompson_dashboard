@@ -17,10 +17,20 @@ interface PhoneInputProps {
 export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
     ({ label, onChange, value = '', placeholder, defaultCountry = 'US', error }, ref) => {
         const allCountries = getAllCountries();
-        const [selectedCountry, setSelectedCountry] = useState<CountryOption>(
-            allCountries.find(c => c.code === defaultCountry) || allCountries[0]
-        );
-        const [phoneNumber, setPhoneNumber] = useState('');
+
+        const getCountryFromValue = (val: string): { country: CountryOption; number: string } => {
+            for (const c of allCountries) {
+                if (val.startsWith(c.dialCode)) {
+                    const number = val.slice(c.dialCode.length);
+                    return { country: c, number };
+                }
+            }
+            return { country: allCountries.find(c => c.code === defaultCountry) || allCountries[0], number: val };
+        };
+
+        // Initialize from value prop (only on mount)
+        const [selectedCountry, setSelectedCountry] = useState<CountryOption>(() => getCountryFromValue(value).country);
+        const [phoneNumber, setPhoneNumber] = useState(() => getCountryFromValue(value).number);
 
         const handleCountrySelect = (country: CountryOption) => {
             setSelectedCountry(country);
