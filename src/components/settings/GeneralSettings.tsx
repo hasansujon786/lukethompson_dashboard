@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { FormInput } from '@/components/ui/FormInput';
 import { Button } from '@/components/ui/Button';
@@ -11,25 +11,27 @@ import toast from 'react-hot-toast';
 interface GeneralSettingsProps {
   profile: ProfileData;
   isLoading: boolean;
-  onSave: (data: ProfileData) => void;
+  onSave: (payload: { data: Record<string, unknown>; imageFile?: File }) => void;
   onAvatarChange?: (file: File) => void;
 }
 
 export const GeneralSettings = ({ profile, isLoading, onSave, onAvatarChange }: GeneralSettingsProps) => {
-  const [firstName, setFirstName] = useState(profile.firstName);
-  const [lastName, setLastName] = useState(profile.lastName);
-  const [email, setEmail] = useState(profile.email);
-  const [phone, setPhone] = useState(profile.phone);
+  const [name, setName] = useState(profile.name);
+  const [email] = useState(profile.email);
+  const [phoneNumber, setPhoneNumber] = useState(profile.phone_number);
   const [avatarPreview, setAvatarPreview] = useState(profile.avatar || '/Avatar.png');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [initialProfile, setInitialProfile] = useState(profile);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setFirstName(profile.firstName);
-    setLastName(profile.lastName);
-    setEmail(profile.email);
-    setPhone(profile.phone);
+  // Sync state when profile changes (re-fetched from API)
+  if (initialProfile !== profile) {
+    setInitialProfile(profile);
+    setName(profile.name);
+    setPhoneNumber(profile.phone_number);
     setAvatarPreview(profile.avatar || '/Avatar.png');
-  }, [profile]);
+    setImageFile(null);
+  }
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -39,7 +41,6 @@ export const GeneralSettings = ({ profile, isLoading, onSave, onAvatarChange }: 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!['image/png', 'image/jpeg'].includes(file.type)) {
       toast.error('Only PNG or JPEG formats are allowed');
       return;
@@ -52,28 +53,30 @@ export const GeneralSettings = ({ profile, isLoading, onSave, onAvatarChange }: 
     };
     reader.readAsDataURL(file);
 
-    // Pass to parent
+    setImageFile(file);
     onAvatarChange?.(file);
   };
 
-  const handleSave = () => {
-    onSave({ firstName, lastName, email, phone, avatar: avatarPreview });
+  const handleSave = async () => {
+    const data: Record<string, unknown> = {
+      name: name.trim(),
+      phone_number: phoneNumber,
+    };
+
+    onSave({ data, imageFile: imageFile || undefined });
   };
 
   const handleCancel = () => {
-    setFirstName(profile.firstName);
-    setLastName(profile.lastName);
-    setEmail(profile.email);
-    setPhone(profile.phone);
+    setName(profile.name);
+    setPhoneNumber(profile.phone_number);
     setAvatarPreview(profile.avatar || '/Avatar.png');
+    setImageFile(null);
   };
 
   const hasChanges =
-    firstName !== profile.firstName ||
-    lastName !== profile.lastName ||
-    email !== profile.email ||
-    phone !== profile.phone ||
-    avatarPreview !== (profile.avatar || '/Avatar.png');
+    name !== profile.name ||
+    phoneNumber !== profile.phone_number ||
+    imageFile !== null;
 
   return (
     <div className="flex w-full flex-col gap-6 rounded-xl border border-border-light bg-form-bg p-4 sm:p-6">
@@ -83,7 +86,7 @@ export const GeneralSettings = ({ profile, isLoading, onSave, onAvatarChange }: 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <div className="relative h-10 w-10 overflow-hidden rounded-full">
-            <Image src={avatarPreview} alt="Profile" fill className="object-cover" sizes="40px" />
+            <Image src={avatarPreview} alt="Profile" fill className="object-cover" sizes="40px" unoptimized/>
           </div>
           <div className="flex flex-col gap-1">
             <h3 className="text-sm font-bold text-white">Profile Photo</h3>
@@ -110,16 +113,15 @@ export const GeneralSettings = ({ profile, isLoading, onSave, onAvatarChange }: 
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormInput label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Enter first name" />
-          <FormInput label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Enter last name" />
-          <FormInput label="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" />
+          <FormInput label="Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your name" />
+          <FormInput label="Email Address" type="email" value={email} placeholder="Enter email address" disabled readOnly className="opacity-60 cursor-not-allowed" />
           <PhoneInput
+            key={profile.phone_number + profile.name}
             label="Phone Number"
-            onChange={setPhone}
-            value={phone}
+            onChange={setPhoneNumber}
+            value={phoneNumber}
             placeholder="Enter phone number"
           />
-
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-start">

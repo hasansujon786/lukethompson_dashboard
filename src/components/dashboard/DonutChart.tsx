@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-import { PlanBreakdown } from "@/lib/api/dashboard.mock";
+import { PlanBreakdown } from "@/types";
 
 interface DonutChartProps {
   data: PlanBreakdown[];

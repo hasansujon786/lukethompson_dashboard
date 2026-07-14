@@ -1,9 +1,8 @@
 export type SettingsTab = 'general' | 'password' | 'notifications';
 
 export interface ProfileData {
-    firstName: string;
-    lastName: string;
+    name: string;
     email: string;
-    phone: string;
+    phone_number: string;
     avatar?: string;
 }

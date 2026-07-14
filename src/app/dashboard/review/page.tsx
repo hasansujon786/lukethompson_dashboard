@@ -1,26 +1,29 @@
-'use client';
+"use client";
 
-import { DataTable } from '@/components/ui/DataTable';
-import { StatsCard } from '@/components/dashboard/StatsCard';
-import { UserManagementIcon } from '@/components/ui/icons/UserManagementIcon';
-import { MonthlyRevenueIcon } from '@/components/ui/icons/MonthlyRevenueIcon';
-import { SubscriptionIcon } from '@/components/ui/icons/SubscriptionIcon';
-import { StopsTodayIcon } from '@/components/ui/icons/StopsTodayIcon';
-import { createReviewColumns } from '@/config/review-table.config';
-import { useReview } from '@/hooks/useReview';
-import { mockDashboardStats } from '@/lib/api/dashboard.mock';
+import { DataTable } from "@/components/ui/DataTable";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { DeleteReviewModal } from "@/components/review/DeleteReviewModal";
+import { UserManagementIcon } from "@/components/ui/icons/UserManagementIcon";
+import { ReviewIcon } from "@/components/ui/icons/ReviewIcon";
+import { createReviewColumns } from "@/config/review-table.config";
+import { useReview } from "@/hooks/useReview";
+import { useGetShipperStatsQuery } from "@/lib/redux/features/reviews/reviewsApi";
 
 export default function ReviewPage() {
-    const stats = mockDashboardStats;
+    const { data: statsData } = useGetShipperStatsQuery();
+    const stats = statsData?.data;
 
     const {
         reviews,
         currentPage,
         totalPages,
         selectedReview,
+        deleteTarget,
         handleSearch,
         handleViewReview,
         handleDeleteReview,
+        handleConfirmDelete,
+        handleCancelDelete,
         handlePageChange,
     } = useReview({ itemsPerPage: 8 });
 
@@ -32,26 +35,25 @@ export default function ReviewPage() {
     return (
         <div className="space-y-6 p-4 sm:p-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <StatsCard
                     title="Total Users"
-                    value={stats.totalUsers.toLocaleString()}
+                    value={(stats?.total_users ?? 0).toLocaleString()}
                     icon={<UserManagementIcon className="h-6 w-6 text-white" />}
                 />
                 <StatsCard
-                    title="Monthly Revenue"
-                    value={`$${stats.monthlyRevenue.toLocaleString()}`}
-                    icon={<MonthlyRevenueIcon className="h-6 w-6 text-white" />}
+                    title="Total Reviews"
+                    value={(stats?.total_reviews ?? 0).toLocaleString()}
+                    icon={<ReviewIcon className="h-6 w-6 text-white" />}
                 />
                 <StatsCard
-                    title="Pro Subscribers"
-                    value={stats.proSubscribers.toLocaleString()}
-                    icon={<SubscriptionIcon className="h-6 w-6 text-white" />}
-                />
-                <StatsCard
-                    title="Stops Today"
-                    value={stats.stopsToday.toLocaleString()}
-                    icon={<StopsTodayIcon className="h-6 w-6 text-white" />}
+                    title="Total Facilities"
+                    value={(stats?.total_facilities ?? 0).toLocaleString()}
+                    icon={
+                        <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    }
                 />
             </div>
 
@@ -69,6 +71,14 @@ export default function ReviewPage() {
                     totalPages,
                     onPageChange: handlePageChange,
                 }}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <DeleteReviewModal
+                review={deleteTarget}
+                isOpen={!!deleteTarget}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
             />
         </div>
     );

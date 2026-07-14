@@ -10,6 +10,10 @@ import { GeneralSettings } from '@/components/settings/GeneralSettings';
 export default function SettingsPage() {
   const { activeTab, profile, isLoading, handleTabChange, handleProfileUpdate } = useSettings();
 
+  const handleSave = async (payload: { data: Record<string, unknown>; imageFile?: File }) => {
+    await handleProfileUpdate(payload);
+  };
+
   return (
     <div className="flex flex-col gap-5 p-4 sm:flex-row sm:p-6">
       {/* Sidebar Navigation */}
@@ -21,7 +25,7 @@ export default function SettingsPage() {
           <GeneralSettings
             profile={profile}
             isLoading={isLoading}
-            onSave={handleProfileUpdate}
+            onSave={handleSave}
           />
         )}
         {activeTab === 'password' && <PasswordSettings />}

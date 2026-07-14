@@ -2,7 +2,7 @@
 
 import { DonutChart } from "./DonutChart";
 import { PlanBreakdownItem } from "./PlanBreakdownItem";
-import { PlanBreakdown as PlanBreakdownType } from "@/lib/api/dashboard.mock";
+import { PlanBreakdown as PlanBreakdownType } from "@/types";
 
 interface PlanBreakdownProps {
   data: PlanBreakdownType[];

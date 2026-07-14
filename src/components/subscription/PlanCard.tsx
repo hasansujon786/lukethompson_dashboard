@@ -1,4 +1,3 @@
-
 import { TrashIcon } from '../ui/icons/TrashIcon';
 import { FeatureItem } from './FeatureItem';
 import { SubscriptionPlan } from '@/types/subscription.types';
@@ -9,6 +8,12 @@ interface PlanCardProps {
     onDelete: (plan: SubscriptionPlan) => void;
 }
 
+const INTERVAL_LABELS: Record<string, string> = {
+    MONTHLY: '/month',
+    YEARLY: '/year',
+    WEEKLY: '/week',
+};
+
 export const PlanCard = ({ plan, onEdit, onDelete }: PlanCardProps) => {
     return (
         <div className="flex w-[271px] flex-col gap-4 rounded-2xl bg-form-bg p-5">
@@ -17,9 +22,8 @@ export const PlanCard = ({ plan, onEdit, onDelete }: PlanCardProps) => {
                 <div className="flex flex-col gap-2">
                     <div className="flex items-start justify-between">
                         <span className="inline-flex rounded-full bg-green-success/10 px-4 py-1 text-sm text-green-success">
-                            {plan.tier}
+                            {plan.name}
                         </span>
-
                     </div>
                     <p className="text-sm text-white-secondary">{plan.description}</p>
                 </div>
@@ -29,19 +33,22 @@ export const PlanCard = ({ plan, onEdit, onDelete }: PlanCardProps) => {
                         <TrashIcon />
                     </button>
                 </div>
-
             </div>
 
             {/* Price */}
             <div className="flex items-end gap-1">
                 <span className="text-[32px] font-bold leading-none text-white">${plan.price}</span>
-                <span className="text-sm text-white-secondary">/month</span>
+                <span className="text-sm text-white-secondary">{INTERVAL_LABELS[plan.interval] || '/month'}</span>
             </div>
 
             {/* Features */}
             <div className="flex flex-col gap-3 rounded-b-xl bg-form-bg">
                 {plan.features.map((feature) => (
-                    <FeatureItem key={feature.id} text={feature.text} included={feature.included} />
+                    <FeatureItem
+                        key={feature.id}
+                        text={feature.name}
+                        included={feature.enabled}
+                    />
                 ))}
             </div>
 

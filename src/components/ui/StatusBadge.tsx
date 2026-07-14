@@ -6,7 +6,10 @@ interface StatusBadgeProps {
   className?: string;
 }
 
-const statusStyles = {
+const statusStyles: Record<string, string> = {
+  APPROVED: "bg-green-success text-black",
+  PENDING: "bg-[#FF8A3D]",
+  BANNED: "bg-error-red",
   Active: "bg-green-success text-black",
   Inactive: "bg-[#FF8A3D]",
   Banned: "bg-error-red",

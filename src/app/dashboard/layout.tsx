@@ -18,9 +18,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  if (isLoading || !isAuthenticated) {
-    return <LoadingPage />;
-  }
+  // if (isLoading || !isAuthenticated) {
+  //   return <LoadingPage />;
+  // }
 
   return <DashboardLayout>{children}</DashboardLayout>;
 }

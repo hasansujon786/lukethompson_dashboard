@@ -26,9 +26,9 @@ export default function DashboardPage() {
     router.push(`/dashboard/users/${user.id}`);
   };
 
-  if (isLoading || !stats || !revenueData || !planBreakdown) {
-    return <LoadingPage />;
-  }
+  // if (isLoading || !stats || !revenueData || !planBreakdown) {
+  //   return <LoadingPage />;
+  // }
 
   const userColumns = createUserColumns({
     onView: handleViewUser,

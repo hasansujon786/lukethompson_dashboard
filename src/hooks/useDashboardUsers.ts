@@ -1,49 +1,63 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useGetUsersQuery, useBanUserMutation, useUnbanUserMutation, useApproveUserMutation, useDeleteUserMutation } from "@/lib/redux/features/users/usersApi";
 import { User } from "@/types";
-import { mockUsers } from "@/lib/api/users.mock";
 import toast from "react-hot-toast";
 
 export const useDashboardUsers = () => {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const { data, isLoading, refetch } = useGetUsersQuery({ page: 1, limit: 5 });
+  const [banUserMutation] = useBanUserMutation();
+  const [unbanUserMutation] = useUnbanUserMutation();
+  const [approveUserMutation] = useApproveUserMutation();
+  const [deleteUserMutation] = useDeleteUserMutation();
 
-  const handleSearch = useCallback((query: string) => {
-    if (!query.trim()) {
-      setUsers(mockUsers);
-      return;
+  const users = data?.data || [];
+
+  const handleSearch = async (query: string) => {
+    refetch();
+  };
+
+  const handleBanUser = async (user: User) => {
+    try {
+      if (user.status === "BANNED") {
+        await unbanUserMutation(user.id).unwrap();
+        toast.success(`${user.name} unbanned successfully`);
+      } else {
+        await banUserMutation(user.id).unwrap();
+        toast.success(`${user.name} banned successfully`);
+      }
+      refetch();
+    } catch (err) {
+      toast.error("Failed to update user status");
     }
-    const filtered = mockUsers.filter(
-      (user) =>
-        user.name.toLowerCase().includes(query.toLowerCase()) ||
-        user.email.toLowerCase().includes(query.toLowerCase()) ||
-        user.phone?.toLowerCase().includes(query.toLowerCase()),
-    );
-    setUsers(filtered);
-  }, []);
+  };
 
-  const handleBanUser = useCallback((user: User) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id
-          ? { ...u, status: u.status === "Banned" ? "Active" : "Banned" }
-          : u,
-      ),
-    );
-    toast.success(
-      `${user.name} ${user.status === "Banned" ? "unbanned" : "banned"}`,
-    );
-  }, []);
+  const handleApproveUser = async (user: User) => {
+    try {
+      await approveUserMutation(user.id).unwrap();
+      toast.success(`${user.name} approved`);
+      refetch();
+    } catch (err) {
+      toast.error("Failed to approve user");
+    }
+  };
 
-  const handleDeleteUser = useCallback((user: User) => {
-    setUsers((prev) => prev.filter((u) => u.id !== user.id));
-    toast.success(`${user.name} deleted`);
-  }, []);
+  const handleDeleteUser = async (user: User) => {
+    try {
+      await deleteUserMutation(user.id).unwrap();
+      toast.success(`${user.name} deleted`);
+      refetch();
+    } catch (err) {
+      toast.error("Failed to delete user");
+    }
+  };
 
   return {
     users,
+    isLoading,
     handleSearch,
     handleBanUser,
+    handleApproveUser,
     handleDeleteUser,
   };
 };

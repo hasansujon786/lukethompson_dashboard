@@ -1,47 +1,38 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useMemo } from 'react';
-import { Review } from '@/lib/api/review.mock';
-import { mockReviews } from '@/lib/api/review.mock';
-import toast from 'react-hot-toast';
+import { useState, useCallback } from "react";
+import { useGetReviewsQuery, useDeleteReviewMutation } from "@/lib/redux/features/reviews/reviewsApi";
+import { ShipperRating } from "@/types";
+import toast from "react-hot-toast";
 
 interface UseReviewOptions {
-    initialReviews?: Review[];
     itemsPerPage?: number;
 }
 
-export const useReview = ({
-    initialReviews = mockReviews,
-    itemsPerPage = 8,
-}: UseReviewOptions = {}) => {
-    const [reviews, setReviews] = useState<Review[]>(initialReviews);
-    const [searchQuery, setSearchQuery] = useState('');
+export const useReview = ({ itemsPerPage = 8 }: UseReviewOptions = {}) => {
+    const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+    const [selectedReview, setSelectedReview] = useState<ShipperRating | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<ShipperRating | null>(null);
 
-    const filteredReviews = useMemo(() => {
-        if (!searchQuery.trim()) return reviews;
-        return reviews.filter(
-            (review) =>
-                review.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                review.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                review.facilityName.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [reviews, searchQuery]);
+    const { data, isLoading, refetch } = useGetReviewsQuery({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchQuery || undefined,
+    });
 
-    const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
+    const [deleteReviewMutation] = useDeleteReviewMutation();
 
-    const paginatedReviews = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredReviews.slice(start, start + itemsPerPage);
-    }, [filteredReviews, currentPage, itemsPerPage]);
+    const reviews = data?.data || [];
+    const totalReviews = data?.meta_data?.total || 0;
+    const totalPages = Math.ceil(totalReviews / itemsPerPage);
 
     const handleSearch = useCallback((query: string) => {
         setSearchQuery(query);
         setCurrentPage(1);
     }, []);
 
-    const handleViewReview = useCallback((review: Review) => {
+    const handleViewReview = useCallback((review: ShipperRating) => {
         setSelectedReview(review);
     }, []);
 
@@ -49,9 +40,23 @@ export const useReview = ({
         setSelectedReview(null);
     }, []);
 
-    const handleDeleteReview = useCallback((review: Review) => {
-        setReviews((prev) => prev.filter((r) => r.id !== review.id));
-        toast.success(`${review.driverName}'s review deleted`);
+    const handleDeleteReview = useCallback(async (review: ShipperRating) => {
+        setDeleteTarget(review);
+    }, []);
+
+    const handleConfirmDelete = useCallback(async (review: ShipperRating) => {
+        try {
+            await deleteReviewMutation(review.id).unwrap();
+            toast.success(`${review.user?.name || "Shipper"}'s review deleted`);
+            setDeleteTarget(null);
+            refetch();
+        } catch (err) {
+            toast.error("Failed to delete review");
+        }
+    }, [deleteReviewMutation, refetch]);
+
+    const handleCancelDelete = useCallback(() => {
+        setDeleteTarget(null);
     }, []);
 
     const handlePageChange = useCallback((page: number) => {
@@ -59,16 +64,20 @@ export const useReview = ({
     }, []);
 
     return {
-        reviews: paginatedReviews,
-        filteredTotal: filteredReviews.length,
+        reviews,
+        filteredTotal: totalReviews,
         searchQuery,
         currentPage,
         totalPages,
         selectedReview,
+        deleteTarget,
+        isLoading,
         handleSearch,
         handleViewReview,
         handleCloseDetail,
         handleDeleteReview,
+        handleConfirmDelete,
+        handleCancelDelete,
         handlePageChange,
     };
 };

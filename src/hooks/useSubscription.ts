@@ -1,63 +1,108 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { SubscriptionPlan } from '@/types/subscription.types';
-import { mockPlans, mockSubscriptionStats } from '@/lib/api/subscription.mock';
-import toast from 'react-hot-toast';
+import { useState, useCallback } from "react";
+import {
+    useGetPlansQuery,
+    useGetFeaturesQuery,
+    useGetSubscriptionStatsQuery,
+    useCreatePlanMutation,
+    useUpdatePlanMutation,
+    useDeletePlanMutation,
+} from "@/lib/redux/features/subscription/subscriptionApi";
+import { SubscriptionPlan, SubscriptionFeature } from "@/types";
+import toast from "react-hot-toast";
 
 export const useSubscription = () => {
-    const [plans, setPlans] = useState<SubscriptionPlan[]>(mockPlans);
+    const { data: plans = [], isLoading: isLoadingPlans, refetch: refetchPlans } = useGetPlansQuery();
+    const { data: features = [], isLoading: isLoadingFeatures } = useGetFeaturesQuery();
+    const { data: stats, isLoading: isLoadingStats } = useGetSubscriptionStatsQuery();
+    const [createPlanMutation] = useCreatePlanMutation();
+    const [updatePlanMutation] = useUpdatePlanMutation();
+    const [deletePlanMutation] = useDeletePlanMutation();
+
     const [deleteTarget, setDeleteTarget] = useState<SubscriptionPlan | null>(null);
     const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
     const [isAddingPlan, setIsAddingPlan] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState("");
 
-    const stats = mockSubscriptionStats;
+    const isLoading = isLoadingPlans || isLoadingStats || isLoadingFeatures;
 
-    // Edit handlers
-    const handleEditPlan = useCallback((plan: SubscriptionPlan) => {
+    const handleEditPlan = (plan: SubscriptionPlan) => {
         setEditingPlan(plan);
         setIsAddingPlan(false);
-    }, []);
+    };
 
-    const handleCloseEdit = useCallback(() => {
+    const handleCloseEdit = () => {
         setEditingPlan(null);
         setIsAddingPlan(false);
-    }, []);
+    };
 
-    // Add handlers
-    const handleAddPlan = useCallback(() => {
+    const handleAddPlan = () => {
         setIsAddingPlan(true);
         setEditingPlan(null);
-    }, []);
+    };
 
-    // Delete handlers
-    const handleDeleteClick = useCallback((plan: SubscriptionPlan) => {
+    const handleDeleteClick = (plan: SubscriptionPlan) => {
         setDeleteTarget(plan);
-    }, []);
+    };
 
-    const handleDeleteConfirm = useCallback((plan: SubscriptionPlan) => {
-        setPlans((prev) => prev.filter((p) => p.id !== plan.id));
+    const handleDeleteConfirm = async (plan: SubscriptionPlan) => {
+        try {
+            await deletePlanMutation(plan.id).unwrap();
+            setDeleteTarget(null);
+            toast.success(`${plan.name} deleted successfully`);
+            refetchPlans();
+        } catch (err) {
+            toast.error("Failed to delete plan");
+        }
+    };
+
+    const handleDeleteCancel = () => {
         setDeleteTarget(null);
-        toast.success(`${plan.name} deleted`);
-    }, []);
+    };
 
-    const handleDeleteCancel = useCallback(() => {
-        setDeleteTarget(null);
-    }, []);
-
-    // Success handlers
-    const handleShowSuccess = useCallback((message: string) => {
+    const handleShowSuccess = (message: string) => {
         setSuccessMessage(message);
-    }, []);
+    };
 
-    const handleCloseSuccess = useCallback(() => {
-        setSuccessMessage('');
-    }, []);
+    const handleCloseSuccess = () => {
+        setSuccessMessage("");
+    };
+
+    const handleCreatePlan = useCallback(async (data: Record<string, unknown>) => {
+        try {
+            const result = await createPlanMutation(data).unwrap();
+            toast.success("Subscription plan created successfully");
+            return result;
+        } catch (err: unknown) {
+            const error = err as { data?: { message?: string } };
+            toast.error(error?.data?.message || "Failed to create plan");
+            throw err;
+        }
+    }, [createPlanMutation]);
+
+    const handleUpdatePlan = useCallback(async (id: string, data: Record<string, unknown>) => {
+        try {
+            const result = await updatePlanMutation({ id, data }).unwrap();
+            toast.success("Subscription plan updated successfully");
+            return result;
+        } catch (err: unknown) {
+            const error = err as { data?: { message?: string } };
+            toast.error(error?.data?.message || "Failed to update plan");
+            throw err;
+        }
+    }, [updatePlanMutation]);
 
     return {
         plans,
-        stats,
+        features,
+        stats: stats || {
+            totalSubscribers: 0,
+            activePlans: 0,
+            monthlyRevenue: 0,
+            conversionRate: 0,
+        },
+        isLoading,
         deleteTarget,
         editingPlan,
         isAddingPlan,
@@ -70,5 +115,7 @@ export const useSubscription = () => {
         handleDeleteCancel,
         handleShowSuccess,
         handleCloseSuccess,
+        handleCreatePlan,
+        handleUpdatePlan,
     };
 };

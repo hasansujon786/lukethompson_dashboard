@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { MoreHorizontal, Eye } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { CustomDropdown } from "./CustomDropdown";
@@ -6,23 +5,30 @@ import { User } from "@/types";
 import { cn } from "@/lib/utils";
 
 // User info renderer (avatar + name + email)
-export const renderUserInfo = (user: User) => (
-  <div className="flex items-center gap-3">
-    <div className="relative h-10 w-10 overflow-hidden rounded-full">
-      <Image
-        src={user.avatar || "/Avatar.png"}
-        alt={user.name}
-        fill
-        className="object-cover"
-        sizes="40px"
-      />
+export const renderUserInfo = (user: User) => {
+  const avatarUrl = user.avatar && typeof user.avatar === "string" && user.avatar.startsWith("http")
+    ? user.avatar
+    : "/Avatar.png";
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
+        <img
+          src={avatarUrl}
+          alt={user.name}
+          className="h-full w-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/Avatar.png";
+          }}
+        />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-white">{user.name}</span>
+        <span className="text-xs text-white-secondary">{user.email}</span>
+      </div>
     </div>
-    <div className="flex flex-col">
-      <span className="text-sm font-medium text-white">{user.name}</span>
-      <span className="text-xs text-white-secondary">{user.email}</span>
-    </div>
-  </div>
-);
+  );
+};
 
 // Plan renderer with color
 export const renderPlan = (plan: string) => {
@@ -68,19 +74,19 @@ export const renderActions = (
   const dropdownOptions = [
     ...(options.showEye
       ? [
-          {
-            label: "View Details",
-            value: "view",
-            icon: <Eye size={16} />,
-            onClick: () => options.onView?.(user),
-          },
-        ]
+        {
+          label: "View Details",
+          value: "view",
+          icon: <Eye size={16} />,
+          onClick: () => options.onView?.(user),
+        },
+      ]
       : []),
     {
-      label: user.status === "Banned" ? "Unban User" : "Ban User",
+      label: user.status === "BANNED" ? "Unban User" : "Ban User",
       value: "ban",
       className:
-        user.status === "Banned"
+        user.status === "BANNED"
           ? "text-white hover:bg-white/10"
           : "bg-error-red text-white hover:bg-error-red/80",
       onClick: () => options.onBan?.(user),

@@ -10,6 +10,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 export default function SubscriptionPage() {
   const {
     plans,
+    features,
     deleteTarget,
     editingPlan,
     isAddingPlan,
@@ -22,6 +23,8 @@ export default function SubscriptionPage() {
     handleDeleteCancel,
     handleShowSuccess,
     handleCloseSuccess,
+    handleCreatePlan,
+    handleUpdatePlan,
   } = useSubscription();
 
   return (
@@ -59,6 +62,9 @@ export default function SubscriptionPage() {
         isAdding={isAddingPlan}
         handleCloseEdit={handleCloseEdit}
         onSuccess={handleShowSuccess}
+        availableFeatures={features}
+        handleCreatePlan={handleCreatePlan}
+        handleUpdatePlan={handleUpdatePlan}
       />
 
       {/* Success Modal */}

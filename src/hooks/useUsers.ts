@@ -1,40 +1,33 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
+import { useGetUsersQuery, useBanUserMutation, useUnbanUserMutation, useApproveUserMutation, useDeleteUserMutation } from "@/lib/redux/features/users/usersApi";
 import { User } from "@/types";
-import { mockUsers } from "@/lib/api/users.mock";
 import toast from "react-hot-toast";
 
 interface UseUsersOptions {
-  initialUsers?: User[];
   itemsPerPage?: number;
 }
 
-export const useUsers = ({
-  initialUsers = mockUsers,
-  itemsPerPage = 8,
-}: UseUsersOptions = {}) => {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+export const useUsers = ({ itemsPerPage = 10 }: UseUsersOptions = {}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return users;
-    return users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.phone?.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [users, searchQuery]);
+  const { data, isLoading, refetch } = useGetUsersQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery || undefined,
+  });
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const [banUserMutation] = useBanUserMutation();
+  const [unbanUserMutation] = useUnbanUserMutation();
+  const [approveUserMutation] = useApproveUserMutation();
+  const [deleteUserMutation] = useDeleteUserMutation();
 
-  const paginatedUsers = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredUsers.slice(start, start + itemsPerPage);
-  }, [filteredUsers, currentPage, itemsPerPage]);
+  const users = data?.data || [];
+  const totalUsers = data?.meta_data?.total || 0;
+  const totalPages = Math.ceil(totalUsers / itemsPerPage);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -49,39 +42,58 @@ export const useUsers = ({
     setSelectedUser(null);
   }, []);
 
-  const handleBanUser = useCallback((user: User) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id
-          ? { ...u, status: u.status === "Banned" ? "Active" : "Banned" }
-          : u,
-      ),
-    );
-    toast.success(
-      `${user.name} ${user.status === "Banned" ? "unbanned" : "banned"}`,
-    );
-  }, []);
+  const handleBanUser = useCallback(async (user: User) => {
+    try {
+      if (user.status === "BANNED") {
+        await unbanUserMutation(user.id).unwrap();
+        toast.success(`${user.name} unbanned successfully`);
+      } else {
+        await banUserMutation(user.id).unwrap();
+        toast.success(`${user.name} banned successfully`);
+      }
+      refetch();
+    } catch (err) {
+      toast.error("Failed to update user status");
+    }
+  }, [banUserMutation, unbanUserMutation, refetch]);
 
-  const handleDeleteUser = useCallback((user: User) => {
-    setUsers((prev) => prev.filter((u) => u.id !== user.id));
-    toast.success(`${user.name} deleted`);
-  }, []);
+  const handleApproveUser = useCallback(async (user: User) => {
+    try {
+      await approveUserMutation(user.id).unwrap();
+      toast.success(`${user.name} approved`);
+      refetch();
+    } catch (err) {
+      toast.error("Failed to approve user");
+    }
+  }, [approveUserMutation, refetch]);
+
+  const handleDeleteUser = useCallback(async (user: User) => {
+    try {
+      await deleteUserMutation(user.id).unwrap();
+      toast.success(`${user.name} deleted`);
+      refetch();
+    } catch (err) {
+      toast.error("Failed to delete user");
+    }
+  }, [deleteUserMutation, refetch]);
 
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
   }, []);
 
   return {
-    users: paginatedUsers,
-    filteredTotal: filteredUsers.length,
+    users,
+    filteredTotal: totalUsers,
     searchQuery,
     currentPage,
     totalPages,
     selectedUser,
+    isLoading,
     handleSearch,
     handleViewUser,
     handleCloseDetail,
     handleBanUser,
+    handleApproveUser,
     handleDeleteUser,
     handlePageChange,
   };
