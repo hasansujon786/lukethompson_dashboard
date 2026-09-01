@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, LoginFormData } from "@/lib/validation/auth.schema";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/Checkbox";
-import { PasswordInput } from "./PasswordInput";
-import { useAuth } from "@/hooks/useAuth";
-import Link from "next/link";
-import { ROUTES } from "@/constants";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, LoginFormData } from '@/lib/validation/auth.schema';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { PasswordInput } from './PasswordInput';
+import { useAuth } from '@/hooks/useAuth';
+import Link from 'next/link';
+import { ROUTES } from '@/constants';
 
 export const LoginForm = () => {
   const { login, isLoading } = useAuth();
@@ -23,13 +23,13 @@ export const LoginForm = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
       rememberMe: false,
     },
   });
 
-  const rememberMe = watch("rememberMe");
+  const rememberMe = watch('rememberMe');
 
   const onSubmit = async (data: LoginFormData) => {
     await login(data);
@@ -39,7 +39,7 @@ export const LoginForm = () => {
     <div className="w-full">
       <div className="mb-6 sm:mb-8 text-center">
         <h1 className="text-xl sm:text-2xl font-bold text-white font-liberation">
-          Sign in to DetentionPay
+          Sign in to GetDockPay
         </h1>
         <p className="mt-2 text-sm sm:text-base font-normal text-white-secondary">
           Log in to your account
@@ -56,7 +56,7 @@ export const LoginForm = () => {
           placeholder="Enter your email"
           required
           error={errors.email?.message}
-          {...register("email")}
+          {...register('email')}
         />
 
         <PasswordInput
@@ -64,14 +64,14 @@ export const LoginForm = () => {
           placeholder="Enter your password"
           required
           error={errors.password?.message}
-          {...register("password")}
+          {...register('password')}
         />
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Checkbox
             label="Remember me"
             checked={rememberMe}
-            onChange={(e) => setValue("rememberMe", e.target.checked)}
+            onChange={e => setValue('rememberMe', e.target.checked)}
           />
 
           <Link
