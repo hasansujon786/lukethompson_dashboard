@@ -60,6 +60,14 @@ export const usersApi = api.injectEndpoints({
             }),
             providesTags: ["Users"],
         }),
+
+        toggleFoundingMemberStatus: builder.mutation<{ success: boolean; message: string; data: User }, string>({
+            query: (id) => ({
+                url: `/admin/users/${id}/founding-member`,
+                method: "PATCH",
+            }),
+            invalidatesTags: ["Users"],
+        }),
     }),
 });
 
@@ -71,4 +79,5 @@ export const {
     useApproveUserMutation,
     useDeleteUserMutation,
     useGetUserStopLogsQuery,
+    useToggleFoundingMemberStatusMutation
 } = usersApi;

@@ -20,6 +20,7 @@ export interface User {
   joiningDate?: string;
   status?: UserStatus;
   age?: number;
+  founding_member?: boolean;
 }
 
 export interface StopLog {

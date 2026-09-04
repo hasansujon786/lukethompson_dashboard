@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
-import { User, StopLog } from "@/types";
-import { useGetUserQuery, useGetUserStopLogsQuery } from "@/lib/redux/features/users/usersApi";
+import { Switch } from "../ui/Switch";
+
 import { useUserStopLogs } from "@/hooks/useUserStopLogs";
+import {
+  useGetUserQuery,
+  useToggleFoundingMemberStatusMutation,
+} from "@/lib/redux/features/users/usersApi";
+import { StopLog, User } from "@/types";
+import toast from "react-hot-toast";
+import { ArrowLeft } from "lucide-react";
 
 interface UserDetailViewProps {
   user: User;
@@ -14,6 +19,8 @@ interface UserDetailViewProps {
 export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
   const { data: userData, isLoading: userLoading } = useGetUserQuery(user.id);
   const userDetails = userData?.data || user;
+  const [toggleFoundingMember, { isLoading: togglingFoundingMember }] =
+    useToggleFoundingMemberStatusMutation();
 
   const {
     stopLogs,
@@ -25,9 +32,12 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
     refetch,
   } = useUserStopLogs(user.id, { limit: 10 });
 
-  const avatarUrl = userDetails.avatar && typeof userDetails.avatar === "string" && userDetails.avatar.startsWith("http")
-    ? userDetails.avatar
-    : "/Avatar.png";
+  const avatarUrl =
+    userDetails.avatar &&
+    typeof userDetails.avatar === "string" &&
+    userDetails.avatar.startsWith("http")
+      ? userDetails.avatar
+      : "/Avatar.png";
 
   const formatDateTime = (dateStr?: string | null) => {
     if (!dateStr) return "-";
@@ -72,7 +82,9 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
           />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">{userDetails.name}</h2>
+          <h2 className="text-lg font-semibold text-white">
+            {userDetails.name}
+          </h2>
           <p className="text-sm text-white-secondary">{userDetails.email}</p>
           <span className="inline-flex items-center rounded-2xl px-3 py-0.5 text-xs font-medium text-white bg-white/10 mt-1">
             {userDetails.type || userDetails.role || "user"}
@@ -104,7 +116,9 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
               Phone Number
             </label>
             <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
-              <span className="text-sm text-white">{userDetails.phone_number || userDetails.phone || "-"}</span>
+              <span className="text-sm text-white">
+                {userDetails.phone_number || userDetails.phone || "-"}
+              </span>
             </div>
           </div>
           <div>
@@ -112,7 +126,9 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
               User Type
             </label>
             <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
-              <span className="text-sm text-white capitalize">{userDetails.type || userDetails.role || "user"}</span>
+              <span className="text-sm text-white capitalize">
+                {userDetails.type || userDetails.role || "user"}
+              </span>
             </div>
           </div>
           <div>
@@ -120,7 +136,11 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
               Created At
             </label>
             <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
-              <span className="text-sm text-white">{formatDateTime(userDetails.created_at || userDetails.createdAt)}</span>
+              <span className="text-sm text-white">
+                {formatDateTime(
+                  userDetails.created_at || userDetails.createdAt,
+                )}
+              </span>
             </div>
           </div>
           <div>
@@ -128,7 +148,44 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
               Approved At
             </label>
             <div className="rounded-lg border border-border-light bg-white/5 px-3 py-2.5">
-              <span className="text-sm text-white">{formatDateTime((userDetails as User & { approved_at?: string }).approved_at)}</span>
+              <span className="text-sm text-white">
+                {formatDateTime(
+                  (userDetails as User & { approved_at?: string }).approved_at,
+                )}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-1">
+            <div className="rounded-lg border flex border-border-light bg-white/5 px-3 py-2.5">
+              <div className="flex-1">
+                <label className="text-sm text-white capitalize">
+                  Founding Member
+                </label>
+                <h5 className="text-xs text-white-secondary ">
+                  Grant special legacy status to this user account
+                </h5>
+              </div>
+
+              <div className="grid place-items-center">
+                <Switch
+                  id="founding_member"
+                  checked={!!userDetails.founding_member}
+                  disabled={togglingFoundingMember}
+                  onCheckedChange={async () => {
+                    try {
+                      await toggleFoundingMember(user.id).unwrap();
+                      toast.success(
+                        userDetails.founding_member
+                          ? "Founding member status removed"
+                          : "Founding member status granted",
+                      );
+                    } catch {
+                      toast.error("Failed to update founding member status");
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -190,23 +247,48 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border-light">
-                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Location</th>
-                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Arrival Time</th>
-                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Dock In Time</th>
-                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Complete Time</th>
-                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">Departure Time</th>
-                    <th className="pb-3 text-right text-sm font-medium text-white-secondary">Detention</th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">
+                      Location
+                    </th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">
+                      Arrival Time
+                    </th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">
+                      Dock In Time
+                    </th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">
+                      Complete Time
+                    </th>
+                    <th className="pb-3 text-left text-sm font-medium text-white-secondary">
+                      Departure Time
+                    </th>
+                    <th className="pb-3 text-right text-sm font-medium text-white-secondary">
+                      Detention
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {stopLogs.map((log: StopLog) => (
-                    <tr key={log.id} className="border-b border-border-light/50 last:border-0">
+                    <tr
+                      key={log.id}
+                      className="border-b border-border-light/50 last:border-0"
+                    >
                       <td className="py-3 text-sm text-white">{log.address}</td>
-                      <td className="py-3 text-sm text-white-secondary">{formatDateTime(log.arrived_at)}</td>
-                      <td className="py-3 text-sm text-white-secondary">{formatDateTime(log.docked_at)}</td>
-                      <td className="py-3 text-sm text-white-secondary">{formatDateTime(log.completed_at)}</td>
-                      <td className="py-3 text-sm text-white-secondary">{formatDateTime(log.departed_at)}</td>
-                      <td className="py-3 text-sm text-right text-white">{formatCurrency(log.detention)}</td>
+                      <td className="py-3 text-sm text-white-secondary">
+                        {formatDateTime(log.arrived_at)}
+                      </td>
+                      <td className="py-3 text-sm text-white-secondary">
+                        {formatDateTime(log.docked_at)}
+                      </td>
+                      <td className="py-3 text-sm text-white-secondary">
+                        {formatDateTime(log.completed_at)}
+                      </td>
+                      <td className="py-3 text-sm text-white-secondary">
+                        {formatDateTime(log.departed_at)}
+                      </td>
+                      <td className="py-3 text-sm text-right text-white">
+                        {formatCurrency(log.detention)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
