@@ -21,11 +21,11 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/dashboard/review",
     icon: ReviewIcon,
   },
-  {
-    name: "Subscription",
-    href: "/dashboard/subscription",
-    icon: SubscriptionIcon,
-  },
+  // {
+  //   name: "Subscription",
+  //   href: "/dashboard/subscription",
+  //   icon: SubscriptionIcon,
+  // },
   {
     name: "Settings",
     href: "/dashboard/settings",

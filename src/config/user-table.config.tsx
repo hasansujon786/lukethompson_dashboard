@@ -34,15 +34,15 @@ export const createUserColumns = ({
         <span className="text-sm text-white-secondary">{u.phone_number || u.phone || "-"}</span>
       ),
     },
-    {
-      key: "subscription",
-      header: "Subscription",
-      render: (u: User) => (
-        <span className="text-sm text-white-secondary">
-          {u.subscription_plan || u.subscription || "-"}
-        </span>
-      ),
-    },
+    // {
+    //   key: "subscription",
+    //   header: "Subscription",
+    //   render: (u: User) => (
+    //     <span className="text-sm text-white-secondary">
+    //       {u.subscription_plan || u.subscription || "-"}
+    //     </span>
+    //   ),
+    // },
     {
       key: "stops",
       header: "Stops",

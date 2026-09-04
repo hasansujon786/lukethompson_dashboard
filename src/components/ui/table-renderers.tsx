@@ -3,12 +3,17 @@ import { StatusBadge } from "./StatusBadge";
 import { CustomDropdown } from "./CustomDropdown";
 import { User } from "@/types";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
+import CheckBadge from "./CheckBadge";
 
 // User info renderer (avatar + name + email)
 export const renderUserInfo = (user: User) => {
-  const avatarUrl = user.avatar && typeof user.avatar === "string" && user.avatar.startsWith("http")
-    ? user.avatar
-    : "/Avatar.png";
+  const avatarUrl =
+    user.avatar &&
+    typeof user.avatar === "string" &&
+    user.avatar.startsWith("http")
+      ? user.avatar
+      : "/Avatar.png";
 
   return (
     <div className="flex items-center gap-3">
@@ -23,7 +28,13 @@ export const renderUserInfo = (user: User) => {
         />
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-medium text-white">{user.name}</span>
+        <div className="flex gap-2 items-center">
+          <span className="text-sm font-medium text-white">{user.name}</span>
+          {user.founding_member ? (
+            <CheckBadge className="size-4.5 text-green-success" />
+          ) : null}
+        </div>
+
         <span className="text-xs text-white-secondary">{user.email}</span>
       </div>
     </div>
@@ -74,13 +85,13 @@ export const renderActions = (
   const dropdownOptions = [
     ...(options.showEye
       ? [
-        {
-          label: "View Details",
-          value: "view",
-          icon: <Eye size={16} />,
-          onClick: () => options.onView?.(user),
-        },
-      ]
+          {
+            label: "View Details",
+            value: "view",
+            icon: <Eye size={16} />,
+            onClick: () => options.onView?.(user),
+          },
+        ]
       : []),
     {
       label: user.status === "BANNED" ? "Unban User" : "Ban User",

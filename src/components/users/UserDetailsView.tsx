@@ -10,6 +10,7 @@ import {
 import { StopLog, User } from "@/types";
 import toast from "react-hot-toast";
 import { ArrowLeft } from "lucide-react";
+import CheckBadge from "../ui/CheckBadge";
 
 interface UserDetailViewProps {
   user: User;
@@ -82,9 +83,14 @@ export const UserDetailView = ({ user, onBack }: UserDetailViewProps) => {
           />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">
-            {userDetails.name}
-          </h2>
+          <div className="flex gap-2 items-center">
+            <h2 className="text-lg font-semibold text-white">
+              {userDetails.name}
+            </h2>
+            {userDetails.founding_member ? (
+              <CheckBadge className="size-5 text-green-success" />
+            ) : null}
+          </div>
           <p className="text-sm text-white-secondary">{userDetails.email}</p>
           <span className="inline-flex items-center rounded-2xl px-3 py-0.5 text-xs font-medium text-white bg-white/10 mt-1">
             {userDetails.type || userDetails.role || "user"}
